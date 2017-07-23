@@ -1,5 +1,7 @@
 package play;
 
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 
@@ -15,6 +17,12 @@ public class EatCoin implements Runnable {
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
+		
+		// Setting game window
+		GameCore.setGameTitle("Mario Getting Coins");
+		Dimension gameWindow = GameCore.getGameSize();
+		int gameWidth = gameWindow.width;
+		int gameHeight = gameWindow.height - 20; // 20 is the height of window title block
 		
 		// Setting coins randomly
 		int[] coinX = {50, 90, 210, 300, 320, 350, 400, 180};
@@ -32,12 +40,26 @@ public class EatCoin implements Runnable {
 			GameCore.playSpriteAnimate(cur, "rotate", true);
 		}
 		
+		// seting coin/score board
+		int coinCollection = 0;
+		int coinText = 0;
+		GameCore.createImage(coinCollection, "coin.png");
+		GameCore.setImagePosition(coinCollection, 800, 0);
+		GameCore.createText(coinText, " x0");
+		GameCore.setTextFontSize(coinText, 40);
+		GameCore.setTextColor(coinText, Color.yellow);
+		GameCore.setTextPosition(coinText, 840, 0);
+		
 		// Setting Mario
 		int mario = 0;
 		GameCore.createSprite(mario, "mario");
 		GameCore.setSpritePosition(mario, 0, 0);
 		GameCore.setSpriteFlipX(mario, true);
 		GameCore.playSpriteAnimate(mario, "walk", true);
+		// Getting sprites size
+		Dimension marioSize = GameCore.getSpriteSize(mario);
+		int marioWidth = marioSize.width;
+		int marioHeight = marioSize.height;
 		
 		while (true) {
 			int keyCode = GameCore.getPressedKeyCode();
@@ -46,19 +68,27 @@ public class EatCoin implements Runnable {
 			int marioY = marioPos.y;
 			// Control Mario to move
 			if (keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_A) {
-				GameCore.setSpriteFlipX(mario, false);
-				marioX--;
-				GameCore.setSpritePosition(mario, marioX, marioY);
+				if (marioX > 0) { // check is running out of window
+					GameCore.setSpriteFlipX(mario, false);
+					marioX--;
+					GameCore.setSpritePosition(mario, marioX, marioY);
+				}
 			} else if (keyCode == KeyEvent.VK_RIGHT || keyCode == KeyEvent.VK_D) {
-				GameCore.setSpriteFlipX(mario, true);
-				marioX++;
-				GameCore.setSpritePosition(mario, marioX, marioY);
+				if (marioX < gameWidth - marioWidth) {
+					GameCore.setSpriteFlipX(mario, true);
+					marioX++;
+					GameCore.setSpritePosition(mario, marioX, marioY);
+				}
 			} else if (keyCode == KeyEvent.VK_UP|| keyCode == KeyEvent.VK_W) {
-				marioY--;
-				GameCore.setSpritePosition(mario, marioX, marioY);
+				if (marioY > 0) {
+					marioY--;
+					GameCore.setSpritePosition(mario, marioX, marioY);
+				}
 			} else if (keyCode == KeyEvent.VK_DOWN || keyCode == KeyEvent.VK_S) {
-				marioY++;
-				GameCore.setSpritePosition(mario, marioX, marioY);
+				if (marioY < gameHeight - marioHeight) {
+					marioY++;
+					GameCore.setSpritePosition(mario, marioX, marioY);
+				}
 			}
 			GameCore.pause(10);
 		}
