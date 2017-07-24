@@ -17,18 +17,28 @@ public class EatCoin implements Runnable {
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		
-		// Setting game window
+		GameCore.loadBgView("background.png");
+		/**********************
+		 * Setting game window
+		 **************************/
 		GameCore.setGameTitle("Mario Getting Coins");
 		Dimension gameWindow = GameCore.getGameSize();
 		int gameWidth = gameWindow.width;
 		int gameHeight = gameWindow.height - 20; // 20 is the height of window title block
 		
-		// Setting coins randomly
-		int[] coinX = {50, 90, 210, 300, 320, 350, 400, 180};
-		int[] coinY = {50, 100, 80, 2, 140, 55, 190, 360};
+		/*********************
+		 * Setting coins randomly
+		 ************************/
+		int[] coinX = new int[10];
+		int[] coinY = new int[10];
+		for (int i = 0; i < 10; i++) {
+			int randomX = GameCore.rand(3, 800);
+			int randomY = GameCore.rand(5, 600);
+			coinX[i] = randomX;
+			coinY[i] = randomY;
+		}
 		// check coin's status
-		boolean[] coinExists = new boolean[8];
+		boolean[] coinIsCollected = new boolean[8];
 		// create coins
 		int[] coinNum = {1, 2, 3, 4, 5, 6, 7, 8};
 		for (int i = 0; i < coinNum.length; i++) {
@@ -40,7 +50,30 @@ public class EatCoin implements Runnable {
 			GameCore.playSpriteAnimate(cur, "rotate", true);
 		}
 		
-		// seting coin/score board
+		/********************
+		 *  Setting bombs
+		 ***********************/
+		int[] bombsX = new int[10];
+		int[] bombsY = new int[10];
+		for (int i = 0; i < 10; i++) {
+			int randomX = GameCore.rand(6, 600);
+			int randomY = GameCore.rand(10, 700);
+			bombsX[i] = randomX;
+			bombsY[i] = randomY;
+		}
+		int[] bombs = {11, 12, 13, 14, 15};
+		for (int i = 0; i < bombs.length; i++) {
+			int bomb = bombs[i];
+			GameCore.createSprite(bomb, "bomb");
+			int x = bombsX[i];
+			int y = bombsY[i];
+			GameCore.setSpritePosition(bomb, x, y);
+			GameCore.playSpriteAnimate(bomb, "fire", true);
+		}
+		
+		/************************
+		 * seting coin/score board
+		 **************************/
 		int coinCollection = 0;
 		int coinText = 0;
 		GameCore.createImage(coinCollection, "coin.png");
@@ -50,7 +83,9 @@ public class EatCoin implements Runnable {
 		GameCore.setTextColor(coinText, Color.yellow);
 		GameCore.setTextPosition(coinText, 840, 0);
 		
-		// Setting Mario
+		/*********************
+		 * Setting Mario
+		 ************************/
 		int mario = 0;
 		GameCore.createSprite(mario, "mario");
 		GameCore.setSpritePosition(mario, 0, 0);
@@ -88,6 +123,63 @@ public class EatCoin implements Runnable {
 				if (marioY < gameHeight - marioHeight) {
 					marioY++;
 					GameCore.setSpritePosition(mario, marioX, marioY);
+				}
+			}
+			
+			// check if coin is collected by Mario
+			for (int i = 0; i < coinNum.length; i++) {
+				int cur = coinNum[i];
+				boolean isEaten = coinIsCollected[i];
+				if (isEaten) {
+					continue;
+				}
+				// get coin image size
+				int coinx = coinX[i];
+				int coiny= coinY[i];
+				Dimension coinSize = GameCore.getSpriteSize(cur);
+				int coinWidth = coinSize.width;
+				int coinHeight = coinSize.height;
+				// get coin coordinate
+				int coinCenterX = coinx + coinWidth / 2;
+				int coinCenterY = coiny + coinHeight / 2;
+				//get Mario coordinate
+				int marioCenterX = marioX + marioWidth / 2;
+				int marioCenterY = marioY + marioWidth / 2;
+				// calculate distance between Mario and coin 
+				double distance = Math.pow((coinCenterX - marioCenterX)  * (coinCenterX - marioCenterX) +  (coinCenterY - marioCenterY) * (coinCenterY - marioCenterY), 0.5);
+				if (distance < 15) {
+					GameCore.hideSprite(cur); // hide eaten coins
+					coinIsCollected[i] = true;
+					// update score and how many coins collected
+					int eatenCoins = 0;
+					for (int j = 0; j < coinIsCollected.length; j++) {
+						if (coinIsCollected[j]) {
+							eatenCoins++;
+						}
+					}
+					GameCore.setText(coinText, "x" +  eatenCoins);
+				}
+			}
+			
+			// check if got bombs
+			for (int i = 0; i < bombs.length; i++) {
+				int bomb = bombs[i];
+				int x = bombsX[i];
+				int y = bombsY[i];
+				// get bomb size
+				Dimension bombSize = GameCore.getSpriteSize(bomb);
+				int bombWidth = bombSize.width;
+				int bombHeight = bombSize.height;
+				// get bomb coordinates
+				int bombCenterX = x + bombWidth / 2;
+				int bombCenterY = y + bombHeight / 2;
+				//get Mario coordinate
+				int marioCenterX = marioX + marioWidth / 2;
+				int marioCenterY = marioY + marioWidth / 2;
+				// calculate distance between Mario and coin 
+				double distance = Math.pow((x - marioCenterX)  * (x - marioCenterX) +  (y - marioCenterY) * (y - marioCenterY), 0.5);
+				if (distance < 15) {
+					GameCore.exit();
 				}
 			}
 			GameCore.pause(10);
